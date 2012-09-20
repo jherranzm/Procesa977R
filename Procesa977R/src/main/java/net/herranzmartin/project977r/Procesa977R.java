@@ -13,13 +13,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -35,21 +31,11 @@ public class Procesa977R {
 	
 
 
+	private static final String SEPARADOR_CAMPO = ";";
 	final private static String PREFIJO_FICHERO_TEXTO = "tbl_";
 	final private static String EXTENSION_FICHERO = ".txt";
 
 	final private static Logger logger = Logger.getLogger(Procesa977R.class); 
-
-	final private static String CODIFICACION_FICHERO_ORIGEN = "ISO-8859-1";
-	final private static String CODIFICACION_FICHERO_DESTINO = "UTF-8";
-	final private static String COMILLAS= "\"";
-
-	
-	//Registros especiales
-	final private static String ZONA_A = "ZonaA";
-	final private static String REG_000000 = "000000";
-	final private static String REG_901000 = "901000";
-	final private static String REG_903000 = "903000";
 
 	//Campos especiales
 	final private static String OCURRENCIAS = "OCURRENCIAS";
@@ -124,8 +110,8 @@ public class Procesa977R {
 			campo.setLongitud( longCampos000000[j] );
 			listaCampos.add(campo);
 		}
-		estructuraRegistros.put(REG_000000, listaCampos);
-		estructuraRegistrosExtendida.put(REG_000000, listaCampos);
+		estructuraRegistros.put(Constantes977R.REG_000000, listaCampos);
+		estructuraRegistrosExtendida.put(Constantes977R.REG_000000, listaCampos);
 	}
 
 	private void inicializaRegistrosZonaA() {
@@ -137,15 +123,15 @@ public class Procesa977R {
 			campo.setLongitud( longZonaA[j] );
 			listaCampos.add(campo);
 		}
-		estructuraRegistros.put(ZONA_A, listaCampos);
+		estructuraRegistros.put(Constantes977R.ZONA_A, listaCampos);
 		//estructuraRegistrosExtendida.put(ZONA_A, listaCampos);
 
 	}
 
 	private void procesaRegistro000000(String strLine) {
-		logger.info("Procesando registro " + REG_000000 + "...");
+		logger.info("Procesando registro " + Constantes977R.REG_000000 + "...");
 
-		ArrayList<Campo> listaCampos = estructuraRegistros.get(REG_000000);
+		ArrayList<Campo> listaCampos = estructuraRegistros.get(Constantes977R.REG_000000);
 		
 		int pos = 0;
 
@@ -153,7 +139,7 @@ public class Procesa977R {
 		for (Campo campo : listaCampos) {
 			String chunk = strLine.substring(pos, pos + campo.getLongitud());
 
-			ret.append(chunk).append(";");
+			ret.append(chunk).append(SEPARADOR_CAMPO);
 			pos += campo.getLongitud();
 
 			if (NOMBRE_ARCHIVO_PC.equals(campo.getNombre())) {
@@ -163,11 +149,11 @@ public class Procesa977R {
 			}
 			
 		}
-		String ret2 = nombreFichero + ";" + fechaFactura + ";";
+		String ret2 = nombreFichero + SEPARADOR_CAMPO + fechaFactura + SEPARADOR_CAMPO;
 		
 		recuperaLosCamposDeLaTabla000000();
-		saveToFile(REG_000000, ret2.toString() + ret.toString());
-		loadDataInFile(REG_000000);
+		saveToFile(Constantes977R.REG_000000, ret2.toString() + ret.toString());
+		loadDataInFile(Constantes977R.REG_000000);
 	}
 
 	private void procesaRegistroGenerico(final String codigo,
@@ -181,18 +167,18 @@ public class Procesa977R {
 
 		StringBuilder ret = new StringBuilder();
 		
-			ret.append(claveTbl000000).append(";");
-			ret.append(COMILLAS).append(nombreFichero).append(COMILLAS).append(";");
-			ret.append(COMILLAS).append(fechaFactura).append(COMILLAS).append(";");
+			ret.append(claveTbl000000).append(SEPARADOR_CAMPO);
+			ret.append(Constantes977R.COMILLAS).append(nombreFichero).append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
+			ret.append(Constantes977R.COMILLAS).append(fechaFactura).append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
 		
 		for (Campo campo : listaCampos) {
 			if (campo.getNumeroBloque() == 1) {
 				String original = strLine.substring(pos, pos + campo.getLongitud()).trim();
 
 				
-				String formateado = formatea(campo, original);
+				String formateado = ModificadorFormatos.formatea(campo, original);
 
-				ret.append(formateado).append(";");
+				ret.append(formateado).append(SEPARADOR_CAMPO);
 				pos += campo.getLongitud();
 
 				// Campos especiales
@@ -202,12 +188,12 @@ public class Procesa977R {
 				
 				if(campo.getTablaAuxiliar() == null || campo.getTablaAuxiliar().equals("")){
 				}else{
-					String clave = campo.getTablaAuxiliar() + ";" + original + ";";
+					String clave = campo.getTablaAuxiliar() + SEPARADOR_CAMPO + original + SEPARADOR_CAMPO;
 					String v = tablasAuxiliares.get(clave);
 					if(v != null){
-						ret.append(COMILLAS).append(v).append(COMILLAS).append(";");
+						ret.append(Constantes977R.COMILLAS).append(v).append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
 					}else{
-						ret.append(COMILLAS).append("").append(COMILLAS).append(";");
+						ret.append(Constantes977R.COMILLAS).append("").append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
 					}
 				}
 			}
@@ -225,20 +211,20 @@ public class Procesa977R {
 						original = strLine.substring(pos).trim();
 					}
 
-					String formateado = formatea(campo, original);
+					String formateado = ModificadorFormatos.formatea(campo, original);
 
-					ret2.append(formateado).append(";");
+					ret2.append(formateado).append(SEPARADOR_CAMPO);
 					pos += campo.getLongitud();
 					
 					// tiene tabla auxiliar??
 					if(campo.getTablaAuxiliar().equals("")){
 					}else{
-						String clave = campo.getTablaAuxiliar() + ";" + original + ";";
+						String clave = campo.getTablaAuxiliar() + SEPARADOR_CAMPO + original + SEPARADOR_CAMPO;
 						String v = tablasAuxiliares.get(clave);
 						if(v != null){
-							ret2.append(COMILLAS).append(v).append(COMILLAS).append(";");
+							ret2.append(Constantes977R.COMILLAS).append(v).append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
 						}else{
-							ret2.append(COMILLAS).append("").append(COMILLAS).append(";");
+							ret2.append(Constantes977R.COMILLAS).append("").append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
 						}
 					}
 				}// if
@@ -253,7 +239,7 @@ public class Procesa977R {
 	 * @param codigo
 	 * @param linea
 	 */
-	private void saveToFile(final String codigo, final String linea) {
+	public void saveToFile(final String codigo, final String linea) {
 		try {
 			BufferedWriter br = getBROut(codigo);
 			br.write(linea);
@@ -271,17 +257,17 @@ public class Procesa977R {
 	private void procesaRegistro901000(String strLine) {
 
 		int pos = 0, numRepeticionesBloque2 = 0, longitudTextos = 0;
-		ArrayList<Campo> listaCampos = estructuraRegistros.get(REG_901000);
+		ArrayList<Campo> listaCampos = estructuraRegistros.get(Constantes977R.REG_901000);
 
 		StringBuilder ret = new StringBuilder();
 		
-			ret.append(COMILLAS).append(nombreFichero).append(COMILLAS).append(";");
-			ret.append(COMILLAS).append(fechaFactura).append(COMILLAS).append(";");
+			ret.append(Constantes977R.COMILLAS).append(nombreFichero).append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
+			ret.append(Constantes977R.COMILLAS).append(fechaFactura).append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
 
 		for (Campo campo : listaCampos) {
 			if (campo.getNumeroBloque() == 1) {
 				String chunk = strLine.substring(pos, pos + campo.getLongitud());
-				ret.append(chunk).append(";");
+				ret.append(chunk).append(SEPARADOR_CAMPO);
 				pos += campo.getLongitud();
 
 				// Campos especiales
@@ -307,11 +293,11 @@ public class Procesa977R {
 					} else {
 						chunk = strLine.substring(pos).trim();
 					}
-					ret2.append(chunk).append(";");
+					ret2.append(chunk).append(SEPARADOR_CAMPO);
 					pos += campo.getLongitud();
 					
 					if(CODIGO_EXTERNO.equals(campo.getNombre()) || CODIGO_INTERNO.equals(campo.getNombre())){
-						clave += chunk + ";";
+						clave += chunk + SEPARADOR_CAMPO;
 					}else if(TEXTO.equals(campo.getNombre())){
 						valor = chunk;
 					}
@@ -323,7 +309,7 @@ public class Procesa977R {
 			tablasAuxiliares.put(clave, valor);
 
 			String ret3 = ret.toString() + ret2.toString();
-			saveToFile(REG_901000, ret3);
+			saveToFile(Constantes977R.REG_901000, ret3);
 		}// for
 	}
 
@@ -333,7 +319,7 @@ public class Procesa977R {
 	 */
 	private void procesaRegistro903000(String strLine) {
 
-		ArrayList<Campo> listaCamposZonaA = estructuraRegistros.get(ZONA_A);
+		ArrayList<Campo> listaCamposZonaA = estructuraRegistros.get(Constantes977R.ZONA_A);
 		int pos = 0, numeroBloques = 0, numeroCampos = 0, numeroBloque = 0, numeroBloquePadre = 0;
 		String codigoRegistro = "";
 
@@ -416,7 +402,7 @@ public class Procesa977R {
 	 * @param codigoRegistro
 	 * @return
 	 */
-	private BufferedWriter getBROut(String codigoRegistro) {
+	public BufferedWriter getBROut(String codigoRegistro) {
 
 		File fileOut = null;
 		BufferedWriter out = null;
@@ -428,13 +414,13 @@ public class Procesa977R {
 				// creamos un nuevo fOut
 				fileOut = new File(PREFIJO_FICHERO_TEXTO + codigoRegistro + EXTENSION_FICHERO);
 				fos = new FileOutputStream(fileOut);
-				osw = new OutputStreamWriter(fos, CODIFICACION_FICHERO_DESTINO);
+				osw = new OutputStreamWriter(fos, Constantes977R.CODIFICACION_FICHERO_DESTINO);
 				out = new BufferedWriter(osw);
 				
 				ArrayList<Campo> listaCampos = estructuraRegistrosExtendida.get(codigoRegistro);
 				StringBuilder sb = new StringBuilder();
 				for(Campo campo : listaCampos){
-					sb.append(COMILLAS).append(campo.getNombre()).append(COMILLAS).append(";");
+					sb.append(Constantes977R.COMILLAS).append(campo.getNombre()).append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
 				}
 				out.write(sb.toString());
 				out.newLine();
@@ -451,128 +437,6 @@ public class Procesa977R {
 		}
 
 		return out;
-	}
-
-	/**
-	 * 
-	 * @param campo
-	 * @param valor
-	 * @return
-	 */
-	private String formatea(Campo campo, String valor) {
-
-		String ret = "";
-
-		if ("A".equals(campo.getTipo())) {
-			ret = COMILLAS + valor + COMILLAS;
-		} else if ("D".equals(campo.getTipo())) {
-			ret = formateaCampoDuracion(valor);
-		} else if ("F".equals(campo.getTipo())) {
-			ret = formateaCampoFecha(valor);
-		} else if ("H".equals(campo.getTipo())) {
-			ret = formateaCampoHora(valor);
-		} else if ("I".equals(campo.getTipo())) {
-			ret = formateaCampoNumerico(campo, valor);
-		} else if ("N".equals(campo.getTipo())) {
-			ret = formateaCampoNumerico(campo, valor);
-		}
-		return ret;
-	}
-
-	/**
-	 * @param campo
-	 * @param valor
-	 * @return
-	 */
-	private String formateaCampoNumerico(Campo campo, String valor) {
-		String val = "";
-		valor = corrigeCamposNumericos(valor);
-		int posDecimal = campo.getFormato().indexOf(",");
-		int numDecimales = 0;
-		if (posDecimal > -1) {
-			numDecimales = Integer.valueOf(campo.getFormato().substring(posDecimal + 1));
-			val = valor.substring(0, valor.length() - numDecimales) + "."
-					+ valor.substring(valor.length() - numDecimales);
-			double dNumerico = Double.valueOf(val);
-			
-			Locale locale = Locale.getDefault();
-			DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(locale);
-			otherSymbols.setDecimalSeparator('.');
-			DecimalFormat df = new DecimalFormat("#0.0000", otherSymbols);
-			val = df.format(dNumerico);
-		} else if(campo.getLongitud() > 4 && campo.getLongitud() < 9){ //Código postal, códigos varios
-			val = COMILLAS + valor + COMILLAS;
-		}else{
-			//logger.info(valor + ":" + campo.toString());
-			long l = Long.valueOf(valor);
-			NumberFormat nf = new DecimalFormat("#");
-			val = nf.format(l);
-		}
-		return val;
-	}
-
-	/**
-	 * @param valor
-	 * @return
-	 */
-	private String formateaCampoHora(String valor) {
-		String ret;
-		String sec = valor.substring(valor.length() - 2);
-		String min = valor.substring(valor.length() - 4, valor.length() - 2);
-		String hor = valor.substring(0, valor.length() - 4);
-		ret = hor + ":" + min + ":" + sec;
-		return ret;
-	}
-
-	/**
-	 * @param valor
-	 * @return
-	 */
-	private String formateaCampoFecha(String valor) {
-		String ret;
-		String dia = valor.substring(valor.length() - 2);
-		String mes = valor.substring(valor.length() - 4, valor.length() - 2);
-		String any = valor.substring(0, valor.length() - 4);
-		ret = any + "-" + mes + "-" + dia;
-		ret = any + mes + dia;
-		return ret;
-	}
-
-	/**
-	 * @param valor
-	 * @return
-	 */
-	private String formateaCampoDuracion(String valor) {
-		
-		String sec = valor.substring(valor.length() - 2);
-		String min = valor.substring(valor.length() - 4, valor.length() - 2);
-		String hor = valor.substring(0, valor.length() - 4);
-		double duracion = Double.valueOf(hor).doubleValue() * 60
-				+ Double.valueOf(min).doubleValue()
-				+ Double.valueOf(sec).doubleValue() / 60;
-		Locale locale = Locale.getDefault();
-		DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(locale);
-		otherSymbols.setDecimalSeparator('.');
-		DecimalFormat df = new DecimalFormat("#0.0000", otherSymbols);
-		
-		return df.format(duracion);
-	}
-
-	private String corrigeCamposNumericos(String valor) {
-		String positivos = "{ABCDEFGHI";
-		String negativos = "}JKLMNOPQR";
-		String val = valor;
-
-		String derecha = val.substring(val.length() - 1);
-		if (positivos.indexOf(derecha) > -1) { // es positivo
-			val = val.replace(derecha,
-					(new Integer(positivos.indexOf(derecha))).toString());
-		} else if (negativos.indexOf(derecha) > -1) { // es negativo
-			val = valor.replace(derecha,
-					(new Integer(negativos.indexOf(derecha))).toString());
-			val = "-" + val;
-		}
-		return val;
 	}
 
 	public void execute() {
@@ -599,7 +463,7 @@ public class Procesa977R {
 			for(String str : tree){
 				logger.info(str);
 				//logger.info(getCamposTabla("tbl_"+ str));
-				if (!REG_000000.equals(str) && !REG_901000.equals(str) && !REG_903000.equals(str)) loadDataInFile(str);
+				if (!Constantes977R.REG_000000.equals(str) && !Constantes977R.REG_901000.equals(str) && !Constantes977R.REG_903000.equals(str)) loadDataInFile(str);
 			}
 			
 			
@@ -623,7 +487,7 @@ public class Procesa977R {
 			logger.info(elRegistro);
 			//logger.info(getCamposTabla("tbl_"+ str));
 			ArrayList<String> listaCampos = null;
-			if (!REG_903000.equals(elRegistro)) {
+			if (!Constantes977R.REG_903000.equals(elRegistro)) {
 				//Iniciamos la transacción
 				
 				listaCampos = recuperaLosCamposDeLaTabla(em, elRegistro);
@@ -641,10 +505,10 @@ public class Procesa977R {
 	private void recuperaLosCamposDeLaTabla000000() {
 		EntityManager em = emf.createEntityManager();
 		em.getTransaction().begin();
-			logger.info("Inicio recogida de los campos de la tabla tbl_" + REG_000000);
-			logger.info(REG_000000);
-			ArrayList<String> listaCampos = listaCampos = recuperaLosCamposDeLaTabla(em, REG_000000);
-			camposTabla.put(REG_000000, listaCampos);
+			logger.info("Inicio recogida de los campos de la tabla tbl_" + Constantes977R.REG_000000);
+			logger.info(Constantes977R.REG_000000);
+			ArrayList<String> listaCampos = listaCampos = recuperaLosCamposDeLaTabla(em, Constantes977R.REG_000000);
+			camposTabla.put(Constantes977R.REG_000000, listaCampos);
 		// Cerramos la transacción...
 		em.getTransaction().commit();
 		em.close();
@@ -704,14 +568,14 @@ public class Procesa977R {
 			IOException {
 		String strLine;
 		FileInputStream fis3 = new FileInputStream(new File(fichero));
-		InputStreamReader isr3 = new InputStreamReader(fis3, CODIFICACION_FICHERO_ORIGEN);
+		InputStreamReader isr3 = new InputStreamReader(fis3, Constantes977R.CODIFICACION_FICHERO_ORIGEN);
 		BufferedReader br3 = new BufferedReader(isr3);
 
 		while ((strLine = br3.readLine()) != null && (strLine.length() > 6)) {
 			String codigo = strLine.substring(0, 6);
-			if (REG_901000.equals(codigo)
-					|| REG_903000.equals(codigo)
-					|| REG_000000.equals(codigo)) {
+			if (Constantes977R.REG_901000.equals(codigo)
+					|| Constantes977R.REG_903000.equals(codigo)
+					|| Constantes977R.REG_000000.equals(codigo)) {
 			} else {
 				// logger.info(strLine);
 				procesaRegistroGenerico(codigo, strLine);
@@ -731,13 +595,13 @@ public class Procesa977R {
 			UnsupportedEncodingException,
 			IOException {
 		FileInputStream fis2 = new FileInputStream(new File(fichero));
-		InputStreamReader isr2 = new InputStreamReader(fis2, CODIFICACION_FICHERO_ORIGEN);
+		InputStreamReader isr2 = new InputStreamReader(fis2, Constantes977R.CODIFICACION_FICHERO_ORIGEN);
 		BufferedReader br2 = new BufferedReader(isr2);
 
 		String strLine;
 		while ((strLine = br2.readLine()) != null && (strLine.length() > 6)) {
 			String codigo = strLine.substring(0, 6);
-			if (REG_901000.equals(codigo)) {
+			if (Constantes977R.REG_901000.equals(codigo)) {
 				procesaRegistro901000(strLine);
 			}
 		}
@@ -756,15 +620,15 @@ public class Procesa977R {
 			IOException {
 		
 		FileInputStream fis = new FileInputStream(new File(fichero));
-		InputStreamReader isr = new InputStreamReader(fis, CODIFICACION_FICHERO_ORIGEN);
+		InputStreamReader isr = new InputStreamReader(fis, Constantes977R.CODIFICACION_FICHERO_ORIGEN);
 		BufferedReader br = new BufferedReader(isr);
 
 		String strLine;
 		while ((strLine = br.readLine()) != null && (strLine.length() > 6)) {
 			String codigo = strLine.substring(0, 6);
-			if (REG_000000.equals(codigo)) {
+			if (Constantes977R.REG_000000.equals(codigo)) {
 				procesaRegistro000000(strLine);
-			} else if (REG_903000.equals(codigo)) {
+			} else if (Constantes977R.REG_903000.equals(codigo)) {
 				procesaRegistro903000(strLine);
 			}
 		}
@@ -819,7 +683,7 @@ public class Procesa977R {
 			//Iniciamos la transacción
 			em.getTransaction().begin();
 			
-			if (REG_000000.equals(codigo)) {
+			if (Constantes977R.REG_000000.equals(codigo)) {
 				//	sql = "DELETE FROM 977r.tbl_000000 WHERE (FICHERO = '"+fichero+"' AND FECHA_FACTURA='"+fecha_factura+"')"
 				query = em
 						.createNativeQuery("DELETE FROM 977r.tbl_000000 WHERE (FICHERO = '"
@@ -834,7 +698,7 @@ public class Procesa977R {
 			logger.info("Incorporados " + numRegs + " registros");
 			
 			
-			if (REG_000000.equals(codigo)) {
+			if (Constantes977R.REG_000000.equals(codigo)) {
 				query = em
 						.createNativeQuery("SELECT t.id FROM 977r.tbl_000000 t WHERE (t.FICHERO = '"
 								+ nombreFichero
