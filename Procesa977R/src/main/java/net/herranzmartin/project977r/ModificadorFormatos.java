@@ -13,7 +13,7 @@ public class ModificadorFormatos {
 	 * @param valor
 	 * @return
 	 */
-	public static String formatea(Campo campo, String valor) {
+	public static String formatea(final Campo campo, final String valor) {
 	
 		String ret = "";
 	
@@ -37,7 +37,7 @@ public class ModificadorFormatos {
 	 * @param valor
 	 * @return
 	 */
-	private static String formateaCampoDuracion(String valor) {
+	private static String formateaCampoDuracion(final String valor) {
 		
 		String sec = valor.substring(valor.length() - 2);
 		String min = valor.substring(valor.length() - 4, valor.length() - 2);
@@ -57,7 +57,7 @@ public class ModificadorFormatos {
 	 * @param valor
 	 * @return
 	 */
-	private static String formateaCampoFecha(String valor) {
+	private static String formateaCampoFecha(final String valor) {
 		String ret;
 		String dia = valor.substring(valor.length() - 2);
 		String mes = valor.substring(valor.length() - 4, valor.length() - 2);
@@ -71,7 +71,7 @@ public class ModificadorFormatos {
 	 * @param valor
 	 * @return
 	 */
-	private static String formateaCampoHora(String valor) {
+	private static String formateaCampoHora(final String valor) {
 		String ret;
 		String sec = valor.substring(valor.length() - 2);
 		String min = valor.substring(valor.length() - 4, valor.length() - 2);
@@ -85,9 +85,9 @@ public class ModificadorFormatos {
 	 * @param valor
 	 * @return
 	 */
-	private static String formateaCampoNumerico(Campo campo, String valor) {
+	private static String formateaCampoNumerico(final Campo campo, final String value) {
 		String val = "";
-		valor = corrigeCamposNumericos(valor);
+		String valor = corrigeCamposNumericos(value);
 		int posDecimal = campo.getFormato().indexOf(",");
 		int numDecimales = 0;
 		if (posDecimal > -1) {
@@ -112,7 +112,7 @@ public class ModificadorFormatos {
 		return val;
 	}
 
-	private static String corrigeCamposNumericos(String valor) {
+	private static String corrigeCamposNumericos(final String valor) {
 		String positivos = "{ABCDEFGHI";
 		String negativos = "}JKLMNOPQR";
 		String val = valor;

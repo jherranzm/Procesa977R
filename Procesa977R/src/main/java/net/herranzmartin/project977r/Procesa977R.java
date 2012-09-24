@@ -31,7 +31,7 @@ public class Procesa977R {
 	
 
 
-	private static final String SEPARADOR_CAMPO = ";";
+	final private static String SEPARADOR_CAMPO = ";";
 	final private static String PREFIJO_FICHERO_TEXTO = "tbl_";
 	final private static String EXTENSION_FICHERO = ".txt";
 
@@ -84,10 +84,10 @@ public class Procesa977R {
 
 	private Map<String, String> formatos = new TreeMap<String, String>();
 
+	
 	private String fechaFactura = "";
 	private String nombreFichero = "";
 	private String fichero = "";
-	
 	private long claveTbl000000 = 0;
 
 	private Map<String, String> tablasAuxiliares;
@@ -171,7 +171,9 @@ public class Procesa977R {
 			ret.append(Constantes977R.COMILLAS).append(nombreFichero).append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
 			ret.append(Constantes977R.COMILLAS).append(fechaFactura).append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
 		
+		// Tratamiento del Bloque 1
 		for (Campo campo : listaCampos) {
+			// Sólo tratamos los campos del bloque 1
 			if (campo.getNumeroBloque() == 1) {
 				String original = strLine.substring(pos, pos + campo.getLongitud()).trim();
 
@@ -186,7 +188,9 @@ public class Procesa977R {
 					numRepeticionesBloque2 = Integer.valueOf(original);
 				}
 				
+				// Tiene el campo info adicional en tablas auxiliares?
 				if(campo.getTablaAuxiliar() == null || campo.getTablaAuxiliar().equals("")){
+					// No hay datos tabla auxiliar para este campo...
 				}else{
 					String clave = campo.getTablaAuxiliar() + SEPARADOR_CAMPO + original + SEPARADOR_CAMPO;
 					String v = tablasAuxiliares.get(clave);
@@ -194,23 +198,30 @@ public class Procesa977R {
 						ret.append(Constantes977R.COMILLAS).append(v).append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
 					}else{
 						ret.append(Constantes977R.COMILLAS).append("").append(Constantes977R.COMILLAS).append(SEPARADOR_CAMPO);
-					}
-				}
-			}
-		}
+					}// 
+				}// Fin tablas auxiliares
+			}// .. el campo es del bloque 1
+		}// Fin Bloque 1
 
+		/**
+		 * Nota: sólo hay un tipo de regitro que tenga bloque 3, y que es el 300000
+		 */
+		
+		// Tratamiento del bloque2
 		for (int k = 0; k < numRepeticionesBloque2; k++) {
 			StringBuilder ret2 = new StringBuilder();
 			for (Campo campo : listaCampos) {
 				String original = "";
 				if (campo.getNumeroBloque() > 1) {
 
+					// Hay veces que, al final de línea, el campo es más corto de lo esperado
 					if (pos + campo.getLongitud() < strLine.length()) {
 						original = strLine.substring(pos, pos + campo.getLongitud()).trim();
 					} else {
 						original = strLine.substring(pos).trim();
 					}
 
+					
 					String formateado = ModificadorFormatos.formatea(campo, original);
 
 					ret2.append(formateado).append(SEPARADOR_CAMPO);
@@ -507,7 +518,7 @@ public class Procesa977R {
 		em.getTransaction().begin();
 			logger.info("Inicio recogida de los campos de la tabla tbl_" + Constantes977R.REG_000000);
 			logger.info(Constantes977R.REG_000000);
-			ArrayList<String> listaCampos = listaCampos = recuperaLosCamposDeLaTabla(em, Constantes977R.REG_000000);
+			ArrayList<String> listaCampos = recuperaLosCamposDeLaTabla(em, Constantes977R.REG_000000);
 			camposTabla.put(Constantes977R.REG_000000, listaCampos);
 		// Cerramos la transacción...
 		em.getTransaction().commit();
@@ -529,6 +540,7 @@ public class Procesa977R {
 		
 		Query query = em.createNativeQuery(laConsultaSQL);
 		
+		@SuppressWarnings("unchecked")
 		List<Object[]> list = query.getResultList();
 		
 		logger.info("Recuperados " + list.size() + " registros...");
@@ -650,6 +662,10 @@ public class Procesa977R {
 	
 
 	/**
+	 * Recupera los campos de la tabla pasada por parámetro
+	 * de la matriz "camposTabla" y retorna una cadena con los campos
+	 * separados por comas
+	 * 
 	 * 
 	 * @param tabla
 	 * @return cadena separada por comas de los campos de la tabla pasada por parámetro
@@ -658,7 +674,6 @@ public class Procesa977R {
 		StringBuilder sb = new StringBuilder();
 		List<String> list = camposTabla.get(tabla);
 		
-//		logger.info("Recuperados " + list.size() + " campos de la tabla tbl_" + tabla);
 		for(String campo : list.subList(0, list.size()- 1)){
 			sb.append(campo).append(", ");
 		}
@@ -669,6 +684,13 @@ public class Procesa977R {
 	
 	
 	/**
+	 * 
+	 * Carga los registros "codigo" en la tabla correspondiente.
+	 * 
+	 * En el caso de registros 000000, que son registros padre, si están
+	 * los elimina previamente, y posteriormente los carga
+	 * 
+	 * Tiene conexión con la BD
 	 * 
 	 * @param codigo
 	 */
@@ -724,7 +746,7 @@ public class Procesa977R {
 	 * @return
 	 */
 	private String createLoadDataInfileQuery(String tabla){
-		String sql = "LOAD DATA LOCAL INFILE 'tbl_"+ tabla + ".txt' ";
+		String sql = "LOAD DATA LOCAL INFILE '" + PREFIJO_FICHERO_TEXTO + tabla + EXTENSION_FICHERO +"' ";
 		sql += "INTO TABLE 977R.tbl_" + tabla + " " ;
 		sql += "FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"' " ;
 		sql += "IGNORE 1 LINES " ;
