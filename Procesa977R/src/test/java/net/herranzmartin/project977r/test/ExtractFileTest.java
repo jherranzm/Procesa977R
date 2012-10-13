@@ -14,11 +14,12 @@ public class ExtractFileTest {
 
 	@Test
 	public void test() {
-		String[] ficheros = {"2012-01.zip", 
-				"2012-02.zip",
-				"2012-03.zip",
-				"2012-04.zip",
-				"2012-05.zip",
+		String[] ficheros = {
+//				"2012-01.zip", 
+//				"2012-02.zip",
+//				"2012-03.zip",
+//				"2012-04.zip",
+//				"2012-05.zip",
 				"2012-06.zip"
 				};
 		
